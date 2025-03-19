@@ -7,10 +7,6 @@ from datetime import datetime
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 
-# 🚨 환경 변수 확인 로그 추가
-print(f"🔍 DEBUG: DISCORD_TOKEN 존재 여부: {'설정됨' if TOKEN else '없음'}")
-print(f"🔍 DEBUG: CHANNEL_ID 존재 여부: {'설정됨' if CHANNEL_ID else '없음'}")
-
 if not TOKEN or not CHANNEL_ID:
     print("🚨 오류: DISCORD_TOKEN 또는 CHANNEL_ID가 설정되지 않았습니다.")
     exit(1)
@@ -21,6 +17,30 @@ CHANNEL_ID = int(CHANNEL_ID)
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
+# 기본 알람 스케줄 (매일 07:00 ~ 23:59)
+ALARM_HOURS = range(7, 24)  # 07:00 ~ 23:59
+ALARM_MINUTES = {0: "⏰ 정각입니다!", 25: "🕒 25분이 되었습니다!", 50: "⏳ 50분이 되었습니다!"}
+
+# 사용자 지정 알림 (요일별 특정 시간 추가 가능)
+EXTRA_SCHEDULES = {
+    "Monday": {10: "📢 월요일 오전 10시입니다. 새로운 한 주를 시작해보세요!"},
+    "Wednesday": {15: "📢 수요일 오후 3시입니다. 벌써 주중 절반을 지나고 있어요!"},
+    "Friday": {20: "📢 금요일 밤 8시입니다! 주말이 얼마 남지 않았어요!"}
+}
+
+# ✅ 메시지 전송 함수
+async def send_message(channel, message):
+    try:
+        await channel.send(message)
+        print(f"✅ 메시지 전송 완료: {message}")
+    except discord.errors.Forbidden:
+        print("🚨 오류: 메시지 전송 권한이 없음 (Forbidden)")
+    except discord.errors.HTTPException as e:
+        print(f"🚨 오류: 메시지 전송 실패 - {e}")
+    except Exception as e:
+        print(f"🚨 알 수 없는 오류 발생: {e}")
+
+# ✅ 알람 실행 함수
 async def send_notification():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
@@ -31,20 +51,21 @@ async def send_notification():
 
     print(f"✅ 채널 확인 완료: {channel.name} (ID: {channel.id})")
 
-    # 🚀 실행 확인 메시지 강제 전송 (오류 발생 시 디버깅 로그 추가)
-    try:
-        debug_message = "✅ 디스코드 봇이 실행되었습니다!\n📌 채널 확인 완료"
-        await channel.send(debug_message)
-        print(f"✅ 실행 확인 메시지 전송 완료")
-    except Exception as e:
-        error_message = f"🚨 실행 확인 메시지 전송 실패: {e}"
-        print(error_message)
+    while True:
+        now = datetime.now()
+        weekday = now.strftime("%A")  # 요일 (Monday, Tuesday, ...)
 
-        # 오류 메시지를 디스코드 채널에도 전송 시도
-        try:
-            await channel.send(error_message)
-        except Exception as second_error:
-            print(f"🚨 추가 메시지 전송 실패: {second_error}")
+        # 기본 알람 스케줄 (정각, 25분, 50분)
+        if now.hour in ALARM_HOURS and now.minute in ALARM_MINUTES:
+            message = f"{ALARM_MINUTES[now.minute]}\n🕒 현재 시각: {now.strftime('%H:%M')}"
+            await send_message(channel, message)
+
+        # 사용자 지정 알람 스케줄 (요일별 추가 알림)
+        if weekday in EXTRA_SCHEDULES and now.hour in EXTRA_SCHEDULES[weekday] and now.minute == 0:
+            message = f"{EXTRA_SCHEDULES[weekday][now.hour]}\n🕒 현재 시각: {now.strftime('%H:%M')}"
+            await send_message(channel, message)
+
+        await asyncio.sleep(60)  # 1분 대기 후 다시 확인
 
 @client.event
 async def on_ready():
