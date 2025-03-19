@@ -7,13 +7,18 @@ from datetime import datetime
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 
+# 🚨 환경 변수 값이 올바르게 설정되었는지 로그 출력
+print(f"🔍 DEBUG: DISCORD_TOKEN 존재 여부: {'설정됨' if TOKEN else '없음'}")
+print(f"🔍 DEBUG: CHANNEL_ID 존재 여부: {'설정됨' if CHANNEL_ID else '없음'}")
+
 if not TOKEN or not CHANNEL_ID:
-    raise ValueError("🚨 DISCORD_TOKEN 또는 CHANNEL_ID가 설정되지 않았습니다. GitHub Secrets를 확인하세요.")
+    print("🚨 오류: DISCORD_TOKEN 또는 CHANNEL_ID가 설정되지 않았습니다.")
+    exit(1)
 
 CHANNEL_ID = int(CHANNEL_ID)
 
 # 테스트 모드 설정 (True = 즉시 메시지 전송, False = 일반 모드)
-TEST_MODE = True  # 필요 시 False로 변경
+TEST_MODE = True
 
 intents = discord.Intents.default()
 intents.message_content = True  # ✅ 메시지 읽기 허용
@@ -29,25 +34,15 @@ async def send_notification():
 
     print(f"✅ 채널 확인 완료: {channel.name} (ID: {channel.id})")
 
-    # 🚀 디버깅 메시지 디스코드 채널에 전송
     try:
         debug_message = (
             "✅ 디스코드 봇이 실행되었습니다!\n"
             f"📌 채널 확인 완료: {channel.name} (ID: {channel.id})"
         )
         await channel.send(debug_message)
-        print(f"✅ 디스코드 채널로 디버깅 메시지 전송 완료")
+        print(f"✅ 디버깅 메시지 전송 완료")
     except Exception as e:
         print(f"🚨 디버깅 메시지 전송 실패: {e}")
-
-    if TEST_MODE:
-        test_mode_message = f"🛠 [테스트 모드] 즉시 메시지 전송됨\n🕒 {datetime.now().strftime('%H:%M')}"
-        try:
-            await channel.send(test_mode_message)
-            print(f"✅ 테스트 모드 알림 전송 완료")
-        except Exception as e:
-            print(f"🚨 테스트 모드 메시지 전송 실패: {e}")
-        return
 
 @client.event
 async def on_ready():
@@ -62,4 +57,5 @@ async def on_ready():
     client.loop.create_task(send_notification())
 
 if __name__ == "__main__":
+    print("🚀 봇 실행 시작")
     client.run(TOKEN)
