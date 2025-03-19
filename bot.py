@@ -29,20 +29,22 @@ async def send_notification():
 
     print(f"✅ 채널 확인 완료: {channel.name} (ID: {channel.id})")
 
-    # 🚀 첫 실행 시 테스트 메시지 전송
-    test_message = "✅ 디스코드 봇이 정상적으로 실행되었습니다! 알림이 정상적으로 전송될 예정입니다."
+    # 🚀 디버깅 메시지 디스코드 채널에 전송
     try:
-        await channel.send(test_message)
-        print(f"✅ 테스트 메시지 전송 완료: {test_message}")
+        debug_message = (
+            "✅ 디스코드 봇이 실행되었습니다!\n"
+            f"📌 채널 확인 완료: {channel.name} (ID: {channel.id})"
+        )
+        await channel.send(debug_message)
+        print(f"✅ 디스코드 채널로 디버깅 메시지 전송 완료")
     except Exception as e:
-        print(f"🚨 메시지 전송 실패: {e}")
-        return
+        print(f"🚨 디버깅 메시지 전송 실패: {e}")
 
     if TEST_MODE:
-        test_mode_message = f"🛠 [테스트 모드] 즉시 메시지 전송됨\n🕒 현재 시각: {datetime.now().strftime('%H:%M')}"
+        test_mode_message = f"🛠 [테스트 모드] 즉시 메시지 전송됨\n🕒 {datetime.now().strftime('%H:%M')}"
         try:
             await channel.send(test_mode_message)
-            print(f"✅ 테스트 모드 알림 전송 완료: {test_mode_message}")
+            print(f"✅ 테스트 모드 알림 전송 완료")
         except Exception as e:
             print(f"🚨 테스트 모드 메시지 전송 실패: {e}")
         return
