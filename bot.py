@@ -19,36 +19,33 @@ intents = discord.Intents.default()
 intents.message_content = True  # ✅ 메시지 읽기 허용
 client = discord.Client(intents=intents)
 
-# 기본 알람 스케줄 (매시간 00분, 30분, 50분)
-ALARM_HOURS = range(8, 24)  # 08:00 ~ 23:59
-ALARM_MINUTES = {0: "🔔 00시 00분!!", 30: "🕞 30분이야! 다시 집중해보자!", 50: "⏳ 50분! 이제 잠깐 쉬는 시간을 가져보자!"}
-
 async def send_notification():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
 
     if channel is None:
-        print(f"🚨 채널 ID {CHANNEL_ID}을 찾을 수 없음.")
+        print(f"🚨 오류: 채널 ID {CHANNEL_ID}을 찾을 수 없음.")
         return
 
     print(f"✅ 채널 확인 완료: {channel.name} (ID: {channel.id})")
 
-    # 🚀 테스트 모드 실행
-    if TEST_MODE:
-        test_message = f"🛠 [테스트 모드] 즉시 메시지 전송됨\n🕒 {datetime.now().strftime('%H:%M')}"
+    # 🚀 첫 실행 시 테스트 메시지 전송
+    test_message = "✅ 디스코드 봇이 정상적으로 실행되었습니다! 알림이 정상적으로 전송될 예정입니다."
+    try:
         await channel.send(test_message)
-        print(f"✅ 테스트 모드 메시지 전송 완료: {test_message}")
-        return  # 테스트 모드에서는 즉시 종료
+        print(f"✅ 테스트 메시지 전송 완료: {test_message}")
+    except Exception as e:
+        print(f"🚨 메시지 전송 실패: {e}")
+        return
 
-    print("✅ 알림 봇 실행 중...")
-
-    while True:
-        now = datetime.now()
-        if now.hour in ALARM_HOURS and now.minute in ALARM_MINUTES:
-            message = f"{ALARM_MINUTES[now.minute]}\n🕒 현재 시각: {now.strftime('%H:%M')}"
-            await channel.send(message)
-            print(f"✅ 알림 전송: {message}")
-        await asyncio.sleep(60)
+    if TEST_MODE:
+        test_mode_message = f"🛠 [테스트 모드] 즉시 메시지 전송됨\n🕒 현재 시각: {datetime.now().strftime('%H:%M')}"
+        try:
+            await channel.send(test_mode_message)
+            print(f"✅ 테스트 모드 알림 전송 완료: {test_mode_message}")
+        except Exception as e:
+            print(f"🚨 테스트 모드 메시지 전송 실패: {e}")
+        return
 
 @client.event
 async def on_ready():
