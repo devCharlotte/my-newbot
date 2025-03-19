@@ -8,7 +8,7 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 
 if not TOKEN or not CHANNEL_ID:
-    print("[JoonHee-System] 오류: DISCORD_TOKEN 또는 CHANNEL_ID가 설정되지 않았음.")
+    print(" [JoonHee-System]  오류: DISCORD_TOKEN 또는 CHANNEL_ID가 설정되지 않았음.")
     exit(1)
 
 CHANNEL_ID = int(CHANNEL_ID)
@@ -19,7 +19,11 @@ client = discord.Client(intents=intents)
 
 # 기본 알람 스케줄 (매일 07:00 ~ 23:59)
 ALARM_HOURS = range(7, 24)  # 07:00 ~ 23:59
-ALARM_MINUTES = {0: "⏰ 집중 시작!", 25: "🕒 25분이 되었습니다!", 50: "⏳ 50분이 되었습니다!"}
+ALARM_MINUTES = {
+    0: "⏰ 집중 시작!", 
+    25: "🕒 {time} - 조금만 더 파이팅!", 
+    50: "⏳ {time} - 이제 쉬자! 스트레칭하고 물 마시기!"
+}
 
 # 사용자 지정 알림 (요일별 특정 시간 추가 가능)
 EXTRA_SCHEDULES = {
@@ -37,28 +41,28 @@ EXTRA_SCHEDULES = {
     }
 }
 
-# 메시지 전송 함수
+# ✅ 메시지 전송 함수
 async def send_message(channel, message):
     try:
         await channel.send(message)
-        print(f"[JoonHee-System] 메시지 전송 완료: {message}")
+        print(f" [JoonHee-System] 메시지 전송 완료: {message}")
     except discord.errors.Forbidden:
-        print("[JoonHee-System] 오류: 메시지 전송 권한이 없음 (Forbidden)")
+        print(" [JoonHee-System]  오류: 메시지 전송 권한이 없음 (Forbidden)")
     except discord.errors.HTTPException as e:
-        print(f"[JoonHee-System] 오류: 메시지 전송 실패 - {e}")
+        print(f" [JoonHee-System]  오류: 메시지 전송 실패 - {e}")
     except Exception as e:
-        print(f"[JoonHee-System] 알 수 없는 오류 발생: {e}")
+        print(f" [JoonHee-System]  알 수 없는 오류 발생: {e}")
 
-# 알람 실행 함수 (중복 방지 적용 & 한국 시간 변환)
+# ✅ 알람 실행 함수 (중복 방지 적용 & 한국 시간 변환)
 async def send_notification():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
 
     if channel is None:
-        print(f"[JoonHee-System] 오류: 채널 ID {CHANNEL_ID}을 찾을 수 없음.")
+        print(f" [JoonHee-System]  오류: 채널 ID {CHANNEL_ID}을 찾을 수 없음.")
         return
 
-    print(f"[JoonHee-System] 채널 확인 완료: {channel.name} (ID: {channel.id})")
+    print(f" [JoonHee-System]  채널 확인 완료: {channel.name} (ID: {channel.id})")
 
     last_sent_minute = None  # 마지막으로 메시지를 보낸 분을 저장
 
@@ -67,13 +71,17 @@ async def send_notification():
         now = now_utc + timedelta(hours=9)  # 한국 시간(KST) 변환
         weekday = now.strftime("%A")  # 요일 (Monday, Tuesday, ...)
 
+        # AM/PM 형식으로 변환
+        formatted_time = now.strftime("%I:%M %p").lstrip("0")  # 06:25 PM -> 6:25 PM
+
         # 중복 전송 방지: 동일한 분(minute)에 메시지를 보낸 경우 다시 보내지 않음
         if now.minute != last_sent_minute:
             # 기본 알람 스케줄 (정각, 25분, 50분) - 현재 시각 포함
             if now.hour in ALARM_HOURS and now.minute in ALARM_MINUTES:
-                time_message = f"⏰ 현재 시각: {now.strftime('%H:%M')}"
+                time_message = f"🕒 현재 시각: {formatted_time}"
                 await send_message(channel, time_message)
-                alert_message = ALARM_MINUTES[now.minute]  # 알림 메시지
+                
+                alert_message = ALARM_MINUTES[now.minute].format(time=formatted_time)  # {time}을 현재 시각으로 대체
                 await send_message(channel, alert_message)
 
             # 사용자 지정 알람 스케줄 (요일별 추가 알림) - 현재 시각 미포함
@@ -89,16 +97,16 @@ async def send_notification():
   
 @client.event
 async def on_ready():
-    print(f"[JoonHee-System] 봇 로그인 완료: {client.user}")
-    print("[JoonHee-System] 서버 및 채널 확인 중...")
+    print(f" [JoonHee-System] 봇 로그인 완료: {client.user}")
+    print(" [JoonHee-System]  서버 및 채널 확인 중...")
 
     for guild in client.guilds:
-        print(f"[JoonHee-System] 서버 이름: {guild.name} (ID: {guild.id})")
+        print(f" [JoonHee-System] 서버 이름: {guild.name} (ID: {guild.id})")
         for channel in guild.text_channels:
-            print(f"[JoonHee-System] 채널 이름: {channel.name} (ID: {channel.id})")
+            print(f" [JoonHee-System] 채널 이름: {channel.name} (ID: {channel.id})")
 
     client.loop.create_task(send_notification())
 
 if __name__ == "__main__":
-    print("[JoonHee-System] 봇 실행 시작")
+    print(" [JoonHee-System]  봇 실행 시작")
     client.run(TOKEN)
