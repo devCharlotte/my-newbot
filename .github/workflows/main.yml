@@ -3,7 +3,7 @@ name: Run Discord Bot
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 23 * * *"   # 한국 시간 08:00 AM (KST)
+    - cron: "0 22 * * *"   # 한국 시간 07:00 AM (KST) - 하루 동안 실행 시작
 
 jobs:
   run-bot:
@@ -20,7 +20,7 @@ jobs:
       - name: Install dependencies
         run: pip install discord.py
 
-      - name: Run bot (no nohup)
+      - name: Run bot
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
