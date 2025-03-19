@@ -19,12 +19,9 @@ jobs:
 
       - name: Install dependencies
         run: pip install discord.py
-          
-      - name: Run bot in background
+
+      - name: Run bot (no nohup)
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-        run: nohup python bot.py > bot.log 2>&1 &
-
-      - name: Debug nohup log
-        run: cat bot.log || echo "🚨 bot.log 파일이 존재하지 않습니다."
+        run: python bot.py
