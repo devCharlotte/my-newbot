@@ -23,9 +23,18 @@ ALARM_MINUTES = {0: "⏰ 정각입니다!", 25: "🕒 25분이 되었습니다!"
 
 # 사용자 지정 알림 (요일별 특정 시간 추가 가능)
 EXTRA_SCHEDULES = {
-    "Monday": {10: "📢 월요일 오전 10시입니다. 새로운 한 주를 시작해보세요!"},
-    "Wednesday": {15: "📢 수요일 오후 3시입니다. 벌써 주중 절반을 지나고 있어요!"},
-    "Friday": {20: "📢 금요일 밤 8시입니다! 주말이 얼마 남지 않았어요!"}
+    "Monday": {
+        8: "📚 08:45 - 분산시스템 (수203, 김규영 교수님)",
+        12: "📚 12:45 - 시스템보안 (프601, 김성민 교수님)",
+        14: "📚 14:45 - 개인정보보호법 (성305, 홍준호 교수님)"
+    },
+    "Wednesday": {
+        14: "📚 14:45 - 융합보안포렌식 (성211, 김학경 교수님)"
+    },
+    "Thursday": {
+        12: "📚 12:45 - 랩미팅",
+        14: "📚 14:45 - 융합보안개론 (성704, 김경진 교수님)"
+    }
 }
 
 # ✅ 메시지 전송 함수
@@ -61,12 +70,13 @@ async def send_notification():
             await send_message(channel, message)
 
         # 사용자 지정 알람 스케줄 (요일별 추가 알림)
-        if weekday in EXTRA_SCHEDULES and now.hour in EXTRA_SCHEDULES[weekday] and now.minute == 0:
-            message = f"{EXTRA_SCHEDULES[weekday][now.hour]}\n🕒 현재 시각: {now.strftime('%H:%M')}"
-            await send_message(channel, message)
+        if weekday in EXTRA_SCHEDULES and now.hour in EXTRA_SCHEDULES[weekday]:
+            if now.minute == 45:  # 사용자 지정 알람은 45분에 울리도록 설정
+                message = f"{EXTRA_SCHEDULES[weekday][now.hour]}\n🕒 현재 시각: {now.strftime('%H:%M')}"
+                await send_message(channel, message)
 
-        await asyncio.sleep(60)  # 1분 대기 후 다시 확인
-
+        await asyncio.sleep(1)  # 1초 대기 후 다시 확인 (즉시 반영)
+  
 @client.event
 async def on_ready():
     print(f"✅ 봇 로그인 완료: {client.user}")
@@ -80,5 +90,8 @@ async def on_ready():
     client.loop.create_task(send_notification())
 
 if __name__ == "__main__":
+    print("🚀 봇 실행 시작")
+    client.run(TOKEN)
+
     print("🚀 봇 실행 시작")
     client.run(TOKEN)
