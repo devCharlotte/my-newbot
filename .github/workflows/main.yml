@@ -1,9 +1,9 @@
 name: Run Discord Bot
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: "0 23 * * *"   # 한국 시간 08:00 AM (KST) - 하루 동안 실행 시작
-  workflow_dispatch:
 
 jobs:
   run-bot:
@@ -24,4 +24,4 @@ jobs:
         env:
           DISCORD_TOKEN: ${{ secrets.DISCORD_TOKEN }}
           CHANNEL_ID: ${{ secrets.CHANNEL_ID }}
-        run: nohup python bot.py &
+        run: nohup python bot.py > bot.log 2>&1 &
