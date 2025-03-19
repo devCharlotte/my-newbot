@@ -19,7 +19,7 @@ client = discord.Client(intents=intents)
 
 # 기본 알람 스케줄 (매일 07:00 ~ 23:59)
 ALARM_HOURS = range(7, 24)  # 07:00 ~ 23:59
-ALARM_MINUTES = {0: "⏳ 집중 시작!", 25: "⏳ 조금만 더 파이팅!", 50: "⏳ 이제 쉬는 시간이다!! 스트레칭하고 물 마시기"}
+ALARM_MINUTES = {0: "⏰ 집중 시작!", 25: "🕒 25분이 되었습니다!", 50: "⏳ 50분이 되었습니다!"}
 
 # 사용자 지정 알림 (요일별 특정 시간 추가 가능)
 EXTRA_SCHEDULES = {
@@ -69,16 +69,14 @@ async def send_notification():
 
         # 중복 전송 방지: 동일한 분(minute)에 메시지를 보낸 경우 다시 보내지 않음
         if now.minute != last_sent_minute:
-            # 현재 시각 먼저 출력
-            time_message = f"⏰ 현재 시각: {now.strftime('%H:%M')}"
-            await send_message(channel, time_message)
-
-            # 기본 알람 스케줄 (정각, 25분, 50분)
+            # 기본 알람 스케줄 (정각, 25분, 50분) - 현재 시각 포함
             if now.hour in ALARM_HOURS and now.minute in ALARM_MINUTES:
-                alert_message = ALARM_MINUTES[now.minute]  # 현재 시각 생략
+                time_message = f"🕒 현재 시각: {now.strftime('%H:%M')}"
+                await send_message(channel, time_message)
+                alert_message = ALARM_MINUTES[now.minute]  # 알림 메시지
                 await send_message(channel, alert_message)
 
-            # 사용자 지정 알람 스케줄 (요일별 추가 알림)
+            # 사용자 지정 알람 스케줄 (요일별 추가 알림) - 현재 시각 미포함
             if weekday in EXTRA_SCHEDULES and now.hour in EXTRA_SCHEDULES[weekday]:
                 if now.minute == 45:  # 사용자 지정 알람은 45분에 울리도록 설정
                     class_message = EXTRA_SCHEDULES[weekday][now.hour]  # 현재 시각 생략
@@ -87,7 +85,7 @@ async def send_notification():
             # 마지막 전송된 분 업데이트 (중복 방지)
             last_sent_minute = now.minute
 
-        await asyncio.sleep(10)  # 10초마다 체크 (실제 메시지는 1분에 한 번만 전송)
+        await asyncio.sleep(60)  # 60초마다 체크 (실제 메시지는 1분에 한 번만 전송)
   
 @client.event
 async def on_ready():
