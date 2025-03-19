@@ -7,7 +7,7 @@ from datetime import datetime
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 
-# 🚨 환경 변수 값이 올바르게 설정되었는지 로그 출력
+# 🚨 환경 변수 확인 로그 추가
 print(f"🔍 DEBUG: DISCORD_TOKEN 존재 여부: {'설정됨' if TOKEN else '없음'}")
 print(f"🔍 DEBUG: CHANNEL_ID 존재 여부: {'설정됨' if CHANNEL_ID else '없음'}")
 
@@ -17,11 +17,8 @@ if not TOKEN or not CHANNEL_ID:
 
 CHANNEL_ID = int(CHANNEL_ID)
 
-# 테스트 모드 설정 (True = 즉시 메시지 전송, False = 일반 모드)
-TEST_MODE = True
-
+# 디스코드 클라이언트 설정
 intents = discord.Intents.default()
-intents.message_content = True  # ✅ 메시지 읽기 허용
 client = discord.Client(intents=intents)
 
 async def send_notification():
@@ -34,15 +31,13 @@ async def send_notification():
 
     print(f"✅ 채널 확인 완료: {channel.name} (ID: {channel.id})")
 
+    # 🚀 실행 확인 메시지 강제 전송
     try:
-        debug_message = (
-            "✅ 디스코드 봇이 실행되었습니다!\n"
-            f"📌 채널 확인 완료: {channel.name} (ID: {channel.id})"
-        )
+        debug_message = "✅ 디스코드 봇이 실행되었습니다!\n📌 채널 확인 완료"
         await channel.send(debug_message)
-        print(f"✅ 디버깅 메시지 전송 완료")
+        print(f"✅ 실행 확인 메시지 전송 완료")
     except Exception as e:
-        print(f"🚨 디버깅 메시지 전송 실패: {e}")
+        print(f"🚨 실행 확인 메시지 전송 실패: {e}")
 
 @client.event
 async def on_ready():
