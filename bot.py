@@ -31,13 +31,20 @@ async def send_notification():
 
     print(f"✅ 채널 확인 완료: {channel.name} (ID: {channel.id})")
 
-    # 🚀 실행 확인 메시지 강제 전송
+    # 🚀 실행 확인 메시지 강제 전송 (오류 발생 시 디버깅 로그 추가)
     try:
         debug_message = "✅ 디스코드 봇이 실행되었습니다!\n📌 채널 확인 완료"
         await channel.send(debug_message)
         print(f"✅ 실행 확인 메시지 전송 완료")
     except Exception as e:
-        print(f"🚨 실행 확인 메시지 전송 실패: {e}")
+        error_message = f"🚨 실행 확인 메시지 전송 실패: {e}"
+        print(error_message)
+
+        # 오류 메시지를 디스코드 채널에도 전송 시도
+        try:
+            await channel.send(error_message)
+        except Exception as second_error:
+            print(f"🚨 추가 메시지 전송 실패: {second_error}")
 
 @client.event
 async def on_ready():
