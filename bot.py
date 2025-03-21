@@ -17,15 +17,15 @@ CHANNEL_ID = int(CHANNEL_ID)
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
-# 기본 알람 스케줄 (매일 07:00 ~ 23:59)
-ALARM_HOURS = range(7, 24)  # 07:00 ~ 23:59
+# ✅ 기본 알람 스케줄 (07:00 ~ 01:00 정상 작동)
+ALARM_HOURS = list(range(7, 24)) + [0]  # 07:00 ~ 23:59 + 00:00 ~ 00:59 (새벽 1시 포함)
 ALARM_MINUTES = {
     0: "⏰ {time} - 집중 시작!", 
     25: "⏰ {time} - 조금만 더 파이팅!", 
     50: "⏳ {time} - 이제 쉬자! 스트레칭하고 물 마시기!"
 }
 
-# 사용자 지정 알림 (요일별 특정 시간 추가 가능)
+# ✅ 사용자 지정 알림 (요일별 특정 시간 추가 가능)
 EXTRA_SCHEDULES = {
     "Monday": {
         8: "⏰ 분산시스템 (9시, 수203, 김규영 교수님)",
@@ -59,7 +59,7 @@ async def send_message(channel, message):
     except Exception as e:
         print(f" [JoonHee-System]  알 수 없는 오류 발생: {e}")
 
-# ✅ 알람 실행 함수 (중복 방지 적용 & 한국 시간 변환)
+# ✅ 알람 실행 함수 (07:00 ~ 01:00 동안 정상 작동)
 async def send_notification():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
@@ -82,15 +82,12 @@ async def send_notification():
 
         # 중복 전송 방지: 동일한 분(minute)에 메시지를 보낸 경우 다시 보내지 않음
         if now.minute != last_sent_minute:
-            # 기본 알람 스케줄 (정각, 25분, 50분) - 현재 시각 포함
+            # ✅ 07:00 ~ 01:00 동안만 알림 전송
             if now.hour in ALARM_HOURS and now.minute in ALARM_MINUTES:
-               # time_message = f"🕒 현재 시각: {formatted_time}"
-               # await send_message(channel, time_message)
-                
                 alert_message = ALARM_MINUTES[now.minute].format(time=formatted_time)  # {time}을 현재 시각으로 대체
                 await send_message(channel, alert_message)
 
-            # 사용자 지정 알람 스케줄 (요일별 추가 알림) - 현재 시각 미포함
+            # ✅ 사용자 지정 알람 스케줄 (요일별 추가 알림) - 현재 시각 미포함
             if weekday in EXTRA_SCHEDULES and now.hour in EXTRA_SCHEDULES[weekday]:
                 if now.minute == 45:  # 사용자 지정 알람은 45분에 울리도록 설정
                     class_message = EXTRA_SCHEDULES[weekday][now.hour]  # 현재 시각 생략
