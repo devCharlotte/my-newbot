@@ -3,7 +3,7 @@ import discord
 import asyncio
 from datetime import datetime, timedelta
 
-# 테스트 모드 ON/OFF
+# 테스트 모드 
 TEST_MODE = True  # True: 테스트, False: 운영
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -70,7 +70,7 @@ async def run_test_mode(channel):
 
     for i, day in enumerate(weekdays):
         events = []
-        date_str = (monday + timedelta(days=i)).strftime("%Y-%m-%d")
+        date_str = (monday + timedelta(days=i)).strftime("%m.%d")  # MM.DD 형식
 
         # 1. 기본 알람 (10:00, 10:25, 10:50)
         hour = 10
@@ -80,13 +80,13 @@ async def run_test_mode(channel):
             message = template.format(time=formatted_time)
             events.append(((hour, minute), message))
 
-        # 2. Today is 요일 (5:45) + 요일별 5시 알림 내용 추가
+        # 2. Today is 요일 (5:45) + 요일별 5시 알림 내용
         today_message = f"🕒 5:45 AM - Today is {date_str} {day}!!"
         if day in EXTRA_SCHEDULES and 5 in EXTRA_SCHEDULES[day]:
-            today_message += f"{EXTRA_SCHEDULES[day][5]}"  # 5시 알림 내용 추가
+            today_message += f"{EXTRA_SCHEDULES[day][5]}"  # 5시 알림 내용
         events.append(((5, 45), today_message))
 
-        # 3. 추가 스케줄 알림 (5시 제외, 시간 AM/PM 표기로 수정)
+        # 3. 추가 스케줄 알림 5시 제외, AM/PM 표기
         if day in EXTRA_SCHEDULES:
             for extra_hour, message in EXTRA_SCHEDULES[day].items():
                 if extra_hour == 5:
@@ -110,7 +110,7 @@ async def run_test_mode(channel):
         await send_message(channel, full_message)
         await asyncio.sleep(1)
 
-# 운영 모드 (실시간 알람 전송)
+# 운영 모드 실시간 
 async def send_notification():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
@@ -126,7 +126,7 @@ async def send_notification():
         now_utc = datetime.utcnow()
         now = now_utc + timedelta(hours=9)  # 한국 시간
         weekday = now.strftime("%A")
-        date_str = now.strftime("%Y-%m-%d")  # 당일 날짜
+        date_str = now.strftime("%m.%d")  # MM.DD 형식
         formatted_time = now.strftime("%I:%M %p").lstrip("0")
 
         if now.minute != last_sent_minute:
