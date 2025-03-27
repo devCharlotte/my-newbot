@@ -20,33 +20,33 @@ client = discord.Client(intents=intents)
 
 ALARM_HOURS = list(range(7, 24)) + [0, 1]
 ALARM_MINUTES = {
-    0: "⏰ {time} - 집중 시작!",
-    25: "⏰ {time} - 조금만 더 파이팅!",
+    0: "🕒 {time} - 집중 시작!",
+    25: "🕒 {time} - 조금만 더 파이팅!",
     50: "⏳ {time} - 이제 쉬자! 스트레칭하고 물 마시기!"
 }
 
 EXTRA_SCHEDULES = {
     "Monday": {
         5: "Monday!! \n- 9 : Distributed Systems\n- 12 : System Security \n- 3 : Information Security Law \n- 7 : 학원",
-        8: "⏰ 분산시스템 (9시, 수203, 김규영 교수님)",
-        9: "🕒 인턴십 일지 / 개정법 preclass / 분산 스터디 / 랩미팅 준비",
-        11: "⏰ 시스템보안 (12시, 프601, 김성민 교수님)",
-        14: "⏰ 개인정보보호법 (3시, 성305, 홍준호 교수님)"
+        8: "분산시스템 (9시, 수203, 김규영 교수님)",
+        9: "인턴십 일지 / 개정법 preclass / 분산 스터디 / 랩미팅 준비",
+        11: "시스템보안 (12시, 프601, 김성민 교수님)",
+        14: "개인정보보호법 (3시, 성305, 홍준호 교수님)"
     },
     "Tuesday": {
         5: "Tuesday!! \n- 3 : Industrial Security and Legal System",
-        8: "🕒 인턴십 일지 / 산업보안법 preclass / 분산 스터디 / 랩미팅 준비"
+        8: "인턴십 일지 / 산업보안법 preclass / 분산 스터디 / 랩미팅 준비"
     },
     "Wednesday": {
         5: "Wednesday!! \n- 9 : Work in Magok\n- 12 : Security SW Analysis and Development \n- 3 : Convergence Security Forensic",
-        8: "🕒 인턴십 일지 / 보안sw preclass / 랩미팅 준비",
-        14: "⏰ 융합보안포렌식 (3시, 성211, 김학경 교수님)"
+        8: "인턴십 일지 / 보안sw preclass / 랩미팅 준비",
+        14: "융합보안포렌식 (3시, 성211, 김학경 교수님)"
     },
     "Thursday": {
         5: "Thursday!! \n- 9 : TA work \n- 1 : Lab meeting \n- 3 : Introduction to Information Technology",
-        9: "🕒 인턴십 일지 / 보안 sw preclass / 조교 업무 / 랩미팅 준비",
-        12: "⏰ 랩미팅 (1시)",
-        14: "⏰ 융합보안개론 (3시, 성704, 김경진 교수님)"
+        9: "인턴십 일지 / 보안 sw preclass / 조교 업무 / 랩미팅 준비",
+        12: "랩미팅 (1시)",
+        14: "융합보안개론 (3시, 성704, 김경진 교수님)"
     },
     "Friday": {
         5: "Friday!! \n- 9 : Work in Yongsan "
@@ -86,7 +86,7 @@ async def run_test_mode(channel):
                     continue
                 dt = datetime(2024, 1, 1, extra_hour, 45)
                 time_label = dt.strftime("%I:%M %p").lstrip("0")
-                events.append(((extra_hour, 45), f"🕒 {time_label} - {message}"))
+                events.append(((extra_hour, 45), f"⏰ {time_label} - {message}"))
 
         # 4. 정렬
         events.sort(key=lambda x: (x[0][0], x[0][1]))
@@ -134,7 +134,7 @@ async def send_notification():
                         dt = datetime(2024, 1, 1, now.hour, 45)
                         time_label = dt.strftime("%I:%M %p").lstrip("0")
                         msg = EXTRA_SCHEDULES[weekday][now.hour]
-                        await send_message(channel, f"🕒 {time_label} - {msg}")
+                        await send_message(channel, f"⏰ {time_label} - {msg}")
 
             last_sent_minute = now.minute
 
