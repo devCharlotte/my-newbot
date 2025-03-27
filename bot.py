@@ -3,6 +3,9 @@ import discord
 import asyncio
 from datetime import datetime, timedelta
 
+# 테스트 모드 
+TEST_MODE = True  # True / False
+
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
 
@@ -12,19 +15,16 @@ if not TOKEN or not CHANNEL_ID:
 
 CHANNEL_ID = int(CHANNEL_ID)
 
-# 디스코드 클라이언트
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
 
-# 기본 알람
-ALARM_HOURS = list(range(7, 24)) + [0, 1]  # 07:00 ~ 23:59 + 다음날 새벽 00:00 ~ 01:59
+ALARM_HOURS = list(range(7, 24)) + [0, 1]
 ALARM_MINUTES = {
-    0: "⏰ {time} - 집중 시작!", 
-    25: "⏰ {time} - 조금만 더 파이팅!", 
+    0: "⏰ {time} - 집중 시작!",
+    25: "⏰ {time} - 조금만 더 파이팅!",
     50: "⏳ {time} - 이제 쉬자! 스트레칭하고 물 마시기!"
 }
 
-# 추가 알람
 EXTRA_SCHEDULES = {
     "Monday": {
         5: "Monday!! \n- 9 : Distributed Systems\n- 12 : System Security \n- 3 : Information Security Law \n- 7 : 학원",
@@ -53,19 +53,46 @@ EXTRA_SCHEDULES = {
     }
 }
 
-# 메시지 전송
 async def send_message(channel, message):
     try:
         await channel.send(message)
-        print(f" [JoonHee-System] 메시지 전송 완료: {message}")
-    except discord.errors.Forbidden:
-        print(" [JoonHee-System]  오류: 메시지 전송 권한이 없음 (Forbidden)")
-    except discord.errors.HTTPException as e:
-        print(f" [JoonHee-System]  오류: 메시지 전송 실패 - {e}")
+        print(f" [JoonHee-System] 메시지 전송 완료: {message[:50]}...")
     except Exception as e:
-        print(f" [JoonHee-System]  알 수 없는 오류 발생: {e}")
+        print(f" [JoonHee-System] 메시지 전송 오류: {e}")
 
-# 알람 실행 (07:00 ~ 다음날 01:00)
+# 테스트 모드 - 전체 알람 메시지를 시간 순서로 요일마다 묶어서
+async def run_test_mode(channel):
+    await send_message(channel, "🔧 Test Mode Started - Sending all weekly alarms...")
+
+    weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+    for day in weekdays:
+        events = []
+
+        # 기본 알람 시간 
+        for hour in ALARM_HOURS:
+            for minute, template in ALARM_MINUTES.items():
+                dt = datetime(2024, 1, 1, hour, minute)
+                formatted_time = dt.strftime("%I:%M %p").lstrip("0")
+                message = template.format(time=formatted_time)
+                events.append(((hour, minute), message))
+
+        # 추가 스케줄 알람 시간(45분)
+        if day in EXTRA_SCHEDULES:
+            for hour, message in EXTRA_SCHEDULES[day].items():
+                events.append(((hour, 45), f"🕒 {day} {hour}:45 - {message}"))
+
+        # 시간 기준 정렬
+        events.sort(key=lambda x: (x[0][0], x[0][1]))
+
+        # 테스트 모드 메시지 묶음 생성 및 전송
+        header = f"**===== test mode : {day} =====**"
+        messages = "\n".join([msg for _, msg in events])
+        full_message = f"{header}\n{messages}"
+
+        await send_message(channel, full_message)
+        await asyncio.sleep(1)  # rate limit 방지용
+
+# 일반 모드 
 async def send_notification():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
@@ -75,24 +102,22 @@ async def send_notification():
         return
 
     print(f" [JoonHee-System]  채널 확인 완료: {channel.name} (ID: {channel.id})")
-
     last_sent_minute = None
 
     while True:
         now_utc = datetime.utcnow()
-        now = now_utc + timedelta(hours=9)  # KST 변환
+        now = now_utc + timedelta(hours=9)
         weekday = now.strftime("%A")
         formatted_time = now.strftime("%I:%M %p").lstrip("0")
 
         if now.minute != last_sent_minute:
             if now.hour in ALARM_HOURS and now.minute in ALARM_MINUTES:
-                alert_message = ALARM_MINUTES[now.minute].format(time=formatted_time)
-                await send_message(channel, alert_message)
+                msg = ALARM_MINUTES[now.minute].format(time=formatted_time)
+                await send_message(channel, msg)
 
             if weekday in EXTRA_SCHEDULES and now.hour in EXTRA_SCHEDULES[weekday]:
                 if now.minute == 45:
-                    class_message = EXTRA_SCHEDULES[weekday][now.hour]
-                    await send_message(channel, class_message)
+                    await send_message(channel, EXTRA_SCHEDULES[weekday][now.hour])
 
             last_sent_minute = now.minute
 
@@ -101,14 +126,13 @@ async def send_notification():
 @client.event
 async def on_ready():
     print(f" [JoonHee-System] 봇 로그인 완료: {client.user}")
-    print(" [JoonHee-System]  서버 및 채널 확인 중...")
+    channel = client.get_channel(CHANNEL_ID)
 
-    for guild in client.guilds:
-        print(f" [JoonHee-System] 서버 이름: {guild.name} (ID: {guild.id})")
-        for channel in guild.text_channels:
-            print(f" [JoonHee-System] 채널 이름: {channel.name} (ID: {channel.id})")
-
-    client.loop.create_task(send_notification())
+    if TEST_MODE:
+        await run_test_mode(channel)
+        await client.close()
+    else:
+        client.loop.create_task(send_notification())
 
 if __name__ == "__main__":
     print(" [JoonHee-System]  봇 실행 시작")
