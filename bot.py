@@ -77,7 +77,7 @@ async def run_test_mode(channel):
             events.append(((hour, minute), message))
 
         # 2. Today is 요일 (5:45) + 요일별 5시 알림 내용 추가
-        today_message = f"🕒 5:45 AM - Today is {day}!!"
+        today_message = f"🕒 5:45 AM - Today is {date} {day}!!"
         if day in EXTRA_SCHEDULES and 5 in EXTRA_SCHEDULES[day]:
             today_message += f"{EXTRA_SCHEDULES[day][5]}"  # 5시 알림 내용 추가
         events.append(((5, 45), today_message))
