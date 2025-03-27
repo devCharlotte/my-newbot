@@ -64,9 +64,13 @@ async def send_message(channel, message):
 async def run_test_mode(channel):
     await send_message(channel, "🔧 Test Mode Started - Sending all weekly alarms...")
 
+    today = datetime.utcnow() + timedelta(hours=9)  # 한국 시간
+    monday = today - timedelta(days=today.weekday())  # 이번 주 월요일
     weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
-    for day in weekdays:
+
+    for i, day in enumerate(weekdays):
         events = []
+        date_str = (monday + timedelta(days=i)).strftime("%Y-%m-%d")
 
         # 1. 기본 알람 (10:00, 10:25, 10:50)
         hour = 10
@@ -77,7 +81,7 @@ async def run_test_mode(channel):
             events.append(((hour, minute), message))
 
         # 2. Today is 요일 (5:45) + 요일별 5시 알림 내용 추가
-        today_message = f"🕒 5:45 AM - Today is {date} {day}!!"
+        today_message = f"🕒 5:45 AM - Today is {date_str} {day}!!"
         if day in EXTRA_SCHEDULES and 5 in EXTRA_SCHEDULES[day]:
             today_message += f"{EXTRA_SCHEDULES[day][5]}"  # 5시 알림 내용 추가
         events.append(((5, 45), today_message))
@@ -98,7 +102,7 @@ async def run_test_mode(channel):
         final_messages = []
         for time_tuple, msg in events:
             if time_tuple == (5, 45):
-                final_messages.append(f"**===== test mode : {day} =====**")
+                final_messages.append(f"**===== test mode : {day} ({date_str}) =====**")
             final_messages.append(msg)
 
         # 6. 전송
@@ -122,6 +126,7 @@ async def send_notification():
         now_utc = datetime.utcnow()
         now = now_utc + timedelta(hours=9)  # 한국 시간
         weekday = now.strftime("%A")
+        date_str = now.strftime("%Y-%m-%d")  # 당일 날짜
         formatted_time = now.strftime("%I:%M %p").lstrip("0")
 
         if now.minute != last_sent_minute:
