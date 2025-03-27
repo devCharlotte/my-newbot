@@ -3,7 +3,7 @@ import discord
 import asyncio
 from datetime import datetime, timedelta
 
-# 테스트 모드
+# 테스트 모드 ON/OFF
 TEST_MODE = True  # True: 테스트, False: 운영
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -60,7 +60,7 @@ async def send_message(channel, message):
     except Exception as e:
         print(f" [JoonHee-System] 메시지 전송 오류: {e}")
 
-# 테스트 모드 실행: 요일별 메시지를 시간 순서로 정리해서 한 번에 전송
+# 테스트 모드
 async def run_test_mode(channel):
     await send_message(channel, "🔧 Test Mode Started - Sending all weekly alarms...")
 
@@ -68,36 +68,40 @@ async def run_test_mode(channel):
     for day in weekdays:
         events = []
 
-        # 헤더 먼저
-        events.append(((0, 0), f"**===== test mode : {day} =====**"))
+        # 1. 기본 알람: 10:00, 10:25, 10:50만 포함
+        hour = 10
+        for minute, template in ALARM_MINUTES.items():
+            dt = datetime(2024, 1, 1, hour, minute)
+            formatted_time = dt.strftime("%I:%M %p").lstrip("0")
+            message = template.format(time=formatted_time)
+            events.append(((hour, minute), message))
 
-        # 기본 알람 시간
-        for hour in ALARM_HOURS:
-            for minute, template in ALARM_MINUTES.items():
-                dt = datetime(2024, 1, 1, hour, minute)
-                formatted_time = dt.strftime("%I:%M %p").lstrip("0")
-                message = template.format(time=formatted_time)
-                events.append(((hour, minute), message))
-
-        # 5시 45분: Today is 요일
+        # 2. Today is 요일 (5:45 AM)
         events.append(((5, 45), f"🕒 5:45 AM - Today is {day}!!"))
 
-        # 추가 스케줄 알람 (5시 제외)
+        # 3. 추가 스케줄 (5시 제외)
         if day in EXTRA_SCHEDULES:
-            for hour, message in EXTRA_SCHEDULES[day].items():
-                if hour == 5:
+            for extra_hour, message in EXTRA_SCHEDULES[day].items():
+                if extra_hour == 5:
                     continue
-                events.append(((hour, 45), f"🕒 {day} {hour}:45 - {message}"))
+                events.append(((extra_hour, 45), f"🕒 {day} {extra_hour}:45 - {message}"))
 
-        # 시간 기준 정렬
+        # 4. 시간 순 정렬
         events.sort(key=lambda x: (x[0][0], x[0][1]))
 
-        # 메시지 묶음 전송
-        full_message = "\n".join([msg for _, msg in events])
+        # 5. 헤더는 5:45 바로 앞에 삽입
+        final_messages = []
+        for idx, (time_tuple, msg) in enumerate(events):
+            if time_tuple == (5, 45):
+                final_messages.append(f"**===== test mode : {day} =====**")
+            final_messages.append(msg)
+
+        # 6. 전송
+        full_message = "\n".join(final_messages)
         await send_message(channel, full_message)
         await asyncio.sleep(1)
 
-# 운영 모드: 실시간 알림 감지
+# 실시간 알림 모드
 async def send_notification():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
@@ -111,7 +115,7 @@ async def send_notification():
 
     while True:
         now_utc = datetime.utcnow()
-        now = now_utc + timedelta(hours=9)  # 한국 시간
+        now = now_utc + timedelta(hours=9)  # KST
         weekday = now.strftime("%A")
         formatted_time = now.strftime("%I:%M %p").lstrip("0")
 
@@ -131,6 +135,7 @@ async def send_notification():
 
         await asyncio.sleep(60)
 
+# 봇 시작 시 처리
 @client.event
 async def on_ready():
     print(f" [JoonHee-System] 봇 로그인 완료: {client.user}")
