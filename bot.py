@@ -3,8 +3,8 @@ import discord
 import asyncio
 from datetime import datetime, timedelta
 
-# 테스트 모드 
-TEST_MODE = True  # True / False
+# 테스트 모드
+TEST_MODE = True  # True: 테스트, False: 운영
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
@@ -60,7 +60,7 @@ async def send_message(channel, message):
     except Exception as e:
         print(f" [JoonHee-System] 메시지 전송 오류: {e}")
 
-# 테스트 모드 - 전체 알람 메시지를 시간 순서로 요일마다 묶어서
+# 테스트 모드 실행: 요일별 메시지를 시간 순서로 정리해서 한 번에 전송
 async def run_test_mode(channel):
     await send_message(channel, "🔧 Test Mode Started - Sending all weekly alarms...")
 
@@ -68,7 +68,10 @@ async def run_test_mode(channel):
     for day in weekdays:
         events = []
 
-        # 기본 알람 시간 
+        # 헤더 먼저
+        events.append(((0, 0), f"**===== test mode : {day} =====**"))
+
+        # 기본 알람 시간
         for hour in ALARM_HOURS:
             for minute, template in ALARM_MINUTES.items():
                 dt = datetime(2024, 1, 1, hour, minute)
@@ -76,23 +79,25 @@ async def run_test_mode(channel):
                 message = template.format(time=formatted_time)
                 events.append(((hour, minute), message))
 
-        # 추가 스케줄 알람 시간(45분)
+        # 5시 45분: Today is 요일
+        events.append(((5, 45), f"🕒 5:45 AM - Today is {day}!!"))
+
+        # 추가 스케줄 알람 (5시 제외)
         if day in EXTRA_SCHEDULES:
             for hour, message in EXTRA_SCHEDULES[day].items():
+                if hour == 5:
+                    continue
                 events.append(((hour, 45), f"🕒 {day} {hour}:45 - {message}"))
 
         # 시간 기준 정렬
         events.sort(key=lambda x: (x[0][0], x[0][1]))
 
-        # 테스트 모드 메시지 묶음 생성 및 전송
-        header = f"**===== test mode : {day} =====**"
-        messages = "\n".join([msg for _, msg in events])
-        full_message = f"{header}\n{messages}"
-
+        # 메시지 묶음 전송
+        full_message = "\n".join([msg for _, msg in events])
         await send_message(channel, full_message)
-        await asyncio.sleep(1)  # rate limit 방지용
+        await asyncio.sleep(1)
 
-# 일반 모드 
+# 운영 모드: 실시간 알림 감지
 async def send_notification():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
@@ -106,7 +111,7 @@ async def send_notification():
 
     while True:
         now_utc = datetime.utcnow()
-        now = now_utc + timedelta(hours=9)
+        now = now_utc + timedelta(hours=9)  # 한국 시간
         weekday = now.strftime("%A")
         formatted_time = now.strftime("%I:%M %p").lstrip("0")
 
@@ -117,7 +122,10 @@ async def send_notification():
 
             if weekday in EXTRA_SCHEDULES and now.hour in EXTRA_SCHEDULES[weekday]:
                 if now.minute == 45:
-                    await send_message(channel, EXTRA_SCHEDULES[weekday][now.hour])
+                    if now.hour == 5:
+                        await send_message(channel, f"🕒 5:45 AM - Today is {weekday}!!")
+                    else:
+                        await send_message(channel, EXTRA_SCHEDULES[weekday][now.hour])
 
             last_sent_minute = now.minute
 
