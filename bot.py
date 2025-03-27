@@ -27,7 +27,7 @@ ALARM_MINUTES = {
 
 EXTRA_SCHEDULES = {
     "Monday": {
-        5: "\t- 9 : Distributed Systems\n\t- 12 : System Security \n\t- 3 : Information Security Law \n\t- 7 : 학원",
+        5: "\t- 9 : Distributed Systems\n- 12 : System Security \n- 3 : Information Security Law \n- 7 : 학원",
         8: "분산시스템 (9시, 수203, 김규영 교수님)",
         9: "인턴십 일지 / 개정법 preclass / 분산 스터디 / 랩미팅 준비",
         11: "시스템보안 (12시, 프601, 김성민 교수님)",
@@ -38,12 +38,12 @@ EXTRA_SCHEDULES = {
         8: "인턴십 일지 / 산업보안법 preclass / 분산 스터디 / 랩미팅 준비"
     },
     "Wednesday": {
-        5: "\t- 9 : Work in Magok\n\t- 12 : Security SW Analysis and Development \n\t- 3 : Convergence Security Forensic",
+        5: "\t- 9 : Work in Magok\n- 12 : Security SW Analysis and Development \n- 3 : Convergence Security Forensic",
         8: "인턴십 일지 / 보안sw preclass / 랩미팅 준비",
         14: "융합보안포렌식 (3시, 성211, 김학경 교수님)"
     },
     "Thursday": {
-        5: "\t- 9 : TA work \n\t- 1 : Lab meeting \n\t- 3 : Introduction to Information Technology",
+        5: "\t- 9 : TA work \n- 1 : Lab meeting \n- 3 : Introduction to Information Technology",
         9: "인턴십 일지 / 보안 sw preclass / 조교 업무 / 랩미팅 준비",
         12: "랩미팅 (1시)",
         14: "융합보안개론 (3시, 성704, 김경진 교수님)"
@@ -79,7 +79,7 @@ async def run_test_mode(channel):
         # 2. Today is 요일 (5:45) + 요일별 5시 알림 내용 추가
         today_message = f"🕒 5:45 AM - Today is {day}!!"
         if day in EXTRA_SCHEDULES and 5 in EXTRA_SCHEDULES[day]:
-            today_message += f"\n{EXTRA_SCHEDULES[day][5]}"  # 5시 알림 내용 추가
+            today_message += f"{EXTRA_SCHEDULES[day][5]}"  # 5시 알림 내용 추가
         events.append(((5, 45), today_message))
 
         # 3. 추가 스케줄 알림 (5시 제외, 시간 AM/PM 표기로 수정)
