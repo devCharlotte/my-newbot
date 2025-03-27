@@ -4,7 +4,7 @@ import asyncio
 from datetime import datetime, timedelta
 
 # 테스트 모드 
-TEST_MODE = True  # True: 테스트, False: 운영
+TEST_MODE = False  # True: 테스트, False: 운영
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 CHANNEL_ID = os.getenv("CHANNEL_ID")
