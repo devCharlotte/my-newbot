@@ -27,29 +27,29 @@ ALARM_MINUTES = {
 
 EXTRA_SCHEDULES = {
     "Monday": {
-        5: "\t- 9 : Distributed Systems\n- 12 : System Security \n- 3 : Information Security Law \n- 7 : 학원",
+        5: "\n- 9 : Distributed Systems\n- 12 : System Security \n- 3 : Information Security Law \n- 7 : 학원",
         8: "분산시스템 (9시, 수203, 김규영 교수님)",
         9: "인턴십 일지 / 개정법 preclass / 분산 스터디 / 랩미팅 준비",
         11: "시스템보안 (12시, 프601, 김성민 교수님)",
         14: "개인정보보호법 (3시, 성305, 홍준호 교수님)"
     },
     "Tuesday": {
-        5: "\t- 3 : Industrial Security and Legal System",
+        5: "\n- 3 : Industrial Security and Legal System",
         8: "인턴십 일지 / 산업보안법 preclass / 분산 스터디 / 랩미팅 준비"
     },
     "Wednesday": {
-        5: "\t- 9 : Work in Magok\n- 12 : Security SW Analysis and Development \n- 3 : Convergence Security Forensic",
+        5: "\n- 9 : Work in Magok\n- 12 : Security SW Analysis and Development \n- 3 : Convergence Security Forensic",
         8: "인턴십 일지 / 보안sw preclass / 랩미팅 준비",
         14: "융합보안포렌식 (3시, 성211, 김학경 교수님)"
     },
     "Thursday": {
-        5: "\t- 9 : TA work \n- 1 : Lab meeting \n- 3 : Introduction to Information Technology",
+        5: "\n- 9 : TA work \n- 1 : Lab meeting \n- 3 : Introduction to Information Technology",
         9: "인턴십 일지 / 보안 sw preclass / 조교 업무 / 랩미팅 준비",
         12: "랩미팅 (1시)",
         14: "융합보안개론 (3시, 성704, 김경진 교수님)"
     },
     "Friday": {
-        5: "\t- 9 : Work in Yongsan "
+        5: "\n- 9 : Work in Yongsan "
     }
 }
 
