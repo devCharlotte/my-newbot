@@ -3,7 +3,7 @@ import discord
 import asyncio
 from datetime import datetime, timedelta
 
-# 테스트 모드 
+# 테스트 모드 ON/OFF
 TEST_MODE = True  # True: 테스트, False: 운영
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -60,7 +60,7 @@ async def send_message(channel, message):
     except Exception as e:
         print(f" [JoonHee-System] 메시지 전송 오류: {e}")
 
-# 테스트 모드
+# 테스트 모드 (요일별 전체 메시지 한 번에 전송)
 async def run_test_mode(channel):
     await send_message(channel, "🔧 Test Mode Started - Sending all weekly alarms...")
 
@@ -76,8 +76,11 @@ async def run_test_mode(channel):
             message = template.format(time=formatted_time)
             events.append(((hour, minute), message))
 
-        # 2. Today is 요일 (5:45)
-        events.append(((5, 45), f"🕒 5:45 AM - Today is {day}!!"))
+        # 2. Today is 요일 (5:45) + 요일별 5시 알림 내용 추가
+        today_message = f"🕒 5:45 AM - Today is {day}!!"
+        if day in EXTRA_SCHEDULES and 5 in EXTRA_SCHEDULES[day]:
+            today_message += f"\n{EXTRA_SCHEDULES[day][5]}"  # 5시 알림 내용 추가
+        events.append(((5, 45), today_message))
 
         # 3. 추가 스케줄 알림 (5시 제외, 시간 AM/PM 표기로 수정)
         if day in EXTRA_SCHEDULES:
@@ -91,7 +94,7 @@ async def run_test_mode(channel):
         # 4. 정렬
         events.sort(key=lambda x: (x[0][0], x[0][1]))
 
-        # 5. 테스트 확인을 위해 넣은 헤더는 5:45 알림 바로 앞에 삽입
+        # 5. 헤더는 5:45 알림 바로 앞에 삽입
         final_messages = []
         for time_tuple, msg in events:
             if time_tuple == (5, 45):
@@ -103,7 +106,7 @@ async def run_test_mode(channel):
         await send_message(channel, full_message)
         await asyncio.sleep(1)
 
-# 운영 모드
+# 운영 모드 (실시간 알람 전송)
 async def send_notification():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
@@ -128,13 +131,10 @@ async def send_notification():
 
             if weekday in EXTRA_SCHEDULES and now.hour in EXTRA_SCHEDULES[weekday]:
                 if now.minute == 45:
-                    if now.hour == 5:
-                        await send_message(channel, f"🕒 5:45 AM - Today is {weekday}!!")
-                    else:
-                        dt = datetime(2024, 1, 1, now.hour, 45)
-                        time_label = dt.strftime("%I:%M %p").lstrip("0")
-                        msg = EXTRA_SCHEDULES[weekday][now.hour]
-                        await send_message(channel, f"⏰ {time_label} - {msg}")
+                    dt = datetime(2024, 1, 1, now.hour, 45)
+                    time_label = dt.strftime("%I:%M %p").lstrip("0")
+                    msg = EXTRA_SCHEDULES[weekday][now.hour]
+                    await send_message(channel, f"⏰ {time_label} - {msg}")
 
             last_sent_minute = now.minute
 
